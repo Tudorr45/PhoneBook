@@ -1,4 +1,10 @@
-package com.nagarro;
+package com.nagarro.controller;
+
+import com.arangodb.ArangoDB;
+import com.arangodb.ArangoDBException;
+import com.arangodb.entity.BaseDocument;
+import com.arangodb.mapping.ArangoJack;
+import com.nagarro.model.Contact;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -10,6 +16,15 @@ import java.util.stream.Collectors;
 
 @Path("/contacts")
 public class ContactResource {
+
+    ArangoDB arangoDB = new ArangoDB.Builder()
+            .serializer(new ArangoJack())
+            .user("root")
+            .password("tudor")
+            .build();
+
+    String dbName = "phonebookDB";
+    String collectionName = "firstCollection";
 
     public static List<Contact> contacts = new ArrayList<>();
 
@@ -31,6 +46,18 @@ public class ContactResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response createContact(Contact newContact) {
         contacts.add(newContact);
+        BaseDocument myContact = new BaseDocument();
+        myContact.setKey("myKey2");
+        myContact.addAttribute("firstName", newContact.getFirstName());
+        myContact.addAttribute("lastName", newContact.getLastName());
+        myContact.addAttribute("phone", newContact.getPhone());
+        myContact.addAttribute("creationDate", newContact.getCreationDate().toString());
+        try {
+            arangoDB.db(dbName).collection(collectionName).insertDocument(myContact);
+            System.out.println("Document created");
+        } catch(ArangoDBException e) {
+            System.err.println("Failed to create document. " + e.getMessage());
+        }
         return Response.ok(contacts).build();
     }
 

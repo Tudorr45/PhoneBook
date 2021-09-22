@@ -1,4 +1,4 @@
-package com.nagarro;
+package com.nagarro.model;
 
 import java.time.LocalDate;
 

@@ -29,8 +29,9 @@ public class ContactResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/size")
-    public Integer countContacts() {
-        return contacts.size();
+    public Long countContacts() {
+        //return contacts.size();
+        return contactService.getContactsSize();
     }
 
     @POST
@@ -68,17 +69,21 @@ public class ContactResource {
     @DELETE
     @Path("{id}")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response deleteMovie(@PathParam("id") Long id) {
-        Optional<Contact> contactToDelete = contacts.stream().filter(contact ->
-                contact.getId().equals(id)).findFirst();
-        boolean removed = false;
-        if (contactToDelete.isPresent()) {
-            removed = contacts.remove(contactToDelete.get());
+    public Response deleteMovie(@PathParam("id") String id) {
+//        Optional<Contact> contactToDelete = contacts.stream().filter(contact ->
+//                contact.getId().equals(id)).findFirst();
+//        boolean removed = false;
+//        if (contactToDelete.isPresent()) {
+//            removed = contacts.remove(contactToDelete.get());
+//        }
+//        if (removed) {
+//            return Response.noContent().build();
+//        }
+        if(contactService.deleteContact(id)) {
+            return Response.ok().build();
+        } else {
+            return Response.status(Response.Status.NOT_FOUND).build();
         }
-        if (removed) {
-            return Response.noContent().build();
-        }
-        return Response.status(Response.Status.BAD_REQUEST).build();
     }
 
 }

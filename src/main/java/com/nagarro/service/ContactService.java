@@ -21,7 +21,7 @@ public class ContactService{
         return contactRepo.getContacts();
     }
 
-    public Integer getContactsSize() {
+    public Long getContactsSize() {
         return contactRepo.getContactsSize();
     }
 
@@ -33,7 +33,7 @@ public class ContactService{
         return contactRepo.updateContact(id, firstName, lastName, phone);
     }
 
-    public void deleteContact(Long id) {
-        contactRepo.deleteContact(id);
+    public boolean deleteContact(String id) {
+        return contactRepo.deleteContact(id);
     }
 }

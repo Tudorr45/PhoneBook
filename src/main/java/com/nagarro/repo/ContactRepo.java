@@ -39,14 +39,13 @@ public class ContactRepo implements IContactRepo{
     }
 
     @Override
-    public Integer getContactsSize() {
-        return null;
+    public Long getContactsSize() {
+        return arangoDB.db(DB_NAME).collection(COLLECTION_NAME).count().getCount();
     }
 
     @Override
     public Optional<Contact> createContact(Contact contact) {
         BaseDocument myContact = new BaseDocument();
-        //myContact.setKey(contact.getId().toString());
         myContact.addAttribute("id", contact.getId());
         myContact.addAttribute("firstName", contact.getFirstName());
         myContact.addAttribute("lastName", contact.getLastName());
@@ -68,7 +67,14 @@ public class ContactRepo implements IContactRepo{
     }
 
     @Override
-    public void deleteContact(Long id) {
-
+    public boolean deleteContact(String id) {
+        //arangoDB.db(DB_NAME).collection(COLLECTION_NAME).deleteDocument(id.toString());
+        try{
+            arangoDB.db(DB_NAME).collection(COLLECTION_NAME).deleteDocument(id);
+            return true;
+        } catch(Exception e) {
+            System.out.print(e.getMessage());
+            return false;
+        }
     }
 }

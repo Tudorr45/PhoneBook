@@ -1,19 +1,20 @@
 package com.nagarro.repo;
 
+import com.arangodb.ArangoCursor;
 import com.arangodb.ArangoDB;
 import com.arangodb.ArangoDBException;
 import com.arangodb.entity.BaseDocument;
-import com.arangodb.entity.MultiDocumentEntity;
 import com.arangodb.mapping.ArangoJack;
 import com.nagarro.model.Contact;
 
 import javax.enterprise.context.ApplicationScoped;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 @ApplicationScoped
-public class ContactRepo implements IContactRepo{
+public class ContactRepo implements IContactRepo {
 
     private final static String DB_NAME = "phonebookDB";
     private final static String COLLECTION_NAME = "firstCollection";
@@ -27,14 +28,15 @@ public class ContactRepo implements IContactRepo{
     @Override
     public List<Contact> getContacts() {
         List<Contact> contacts = new ArrayList<>();
-//        MultiDocumentEntity<String> myDocuments = arangoDB.db(DB_NAME).collection(COLLECTION_NAME).getDocuments()
-//        if (myDocuments != null) {
-//            System.out.println("Key: " + myDocuments.getKey());
-//            System.out.println("Attribute a: " + myDocuments.getAttribute("a"));
-//            System.out.println("Attribute b: " + myDocuments.getAttribute("b"));
-//        } else {
-//            System.err.println("Failed to get document: myKey");
-//        }
+        String getAllQuery = "FOR c IN " + COLLECTION_NAME + " RETURN c";
+        try {
+            ArangoCursor<BaseDocument> cursor = arangoDB.db(DB_NAME).query(getAllQuery, BaseDocument.class);
+            cursor.forEachRemaining(baseDocument -> {
+                contacts.add(convertDocumentToContact(baseDocument));
+            });
+        } catch (ArangoDBException exception) {
+            System.err.println("Failed to execute query " + exception.getMessage());
+        }
         return contacts;
     }
 
@@ -46,7 +48,6 @@ public class ContactRepo implements IContactRepo{
     @Override
     public Optional<Contact> createContact(Contact contact) {
         BaseDocument myContact = new BaseDocument();
-        myContact.addAttribute("id", contact.getId());
         myContact.addAttribute("firstName", contact.getFirstName());
         myContact.addAttribute("lastName", contact.getLastName());
         myContact.addAttribute("phone", contact.getPhone());
@@ -55,26 +56,56 @@ public class ContactRepo implements IContactRepo{
             arangoDB.db(DB_NAME).collection(COLLECTION_NAME).insertDocument(myContact);
             System.out.println("Document created");
             return Optional.of(contact);
-        } catch(ArangoDBException e) {
+        } catch (ArangoDBException e) {
             System.err.println("Failed to create document. " + e.getMessage());
             return Optional.empty();
         }
     }
 
     @Override
-    public Contact updateContact(Long id, String firstName, String lastName, String phone) {
+    public Contact updateContact(String firstName, Optional<String> newFirstName, Optional<String> lastName, Optional<String> phone) {
+        BaseDocument baseDocument = getDocumentByContactFirstName(firstName);
+        newFirstName.ifPresent(s -> baseDocument.updateAttribute("firstName", s));
+        lastName.ifPresent(s -> baseDocument.updateAttribute("lastName", s));
+        phone.ifPresent(s -> baseDocument.updateAttribute("phone", s));
+        try {
+            arangoDB.db(DB_NAME).collection(COLLECTION_NAME).updateDocument(baseDocument.getKey(), baseDocument);
+        } catch (ArangoDBException e) {
+            System.err.println("Failed to update document. " + e.getMessage());
+        }
         return null;
     }
 
     @Override
-    public boolean deleteContact(String id) {
-        //arangoDB.db(DB_NAME).collection(COLLECTION_NAME).deleteDocument(id.toString());
-        try{
-            arangoDB.db(DB_NAME).collection(COLLECTION_NAME).deleteDocument(id);
+    public boolean deleteContact(String firstName) {
+        BaseDocument baseDocument = getDocumentByContactFirstName(firstName);
+        try {
+            arangoDB.db(DB_NAME).collection(COLLECTION_NAME).deleteDocument(baseDocument.getKey());
             return true;
-        } catch(Exception e) {
+        } catch (Exception e) {
             System.out.print(e.getMessage());
             return false;
         }
+    }
+
+    private Contact convertDocumentToContact(BaseDocument document) {
+        Contact contact = new Contact();
+        contact.setFirstName(document.getAttribute("firstName").toString());
+        contact.setLastName(document.getAttribute("lastName").toString());
+        contact.setPhone(document.getAttribute("phone").toString());
+        contact.setCreationDate(LocalDate.parse(document.getAttribute("creationDate").toString()));
+        return contact;
+    }
+
+    private BaseDocument getDocumentByContactFirstName(String firstName) {
+        BaseDocument baseDocument = null;
+        try {
+            String findByFirstNameQuery = "FOR c IN " + COLLECTION_NAME + " FILTER c.firstName == '" + firstName + "' RETURN c";
+            ArangoCursor<BaseDocument> cursor = arangoDB.db(DB_NAME).query(findByFirstNameQuery, BaseDocument.class);
+            baseDocument = cursor.next();
+        } catch (ArangoDBException exception) {
+            System.err.println("Error executing query " + exception.getMessage());
+        }
+        return baseDocument;
     }
 }

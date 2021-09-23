@@ -7,8 +7,12 @@ import java.util.Optional;
 
 public interface IContactRepo {
     List<Contact> getContacts();
+
     Long getContactsSize();
+
     Optional<Contact> createContact(Contact contact);
-    Contact updateContact(Long id, String firstName, String lastName, String phone);
+
+    Contact updateContact(String firstName, Optional<String> newFirstName, Optional<String> lastName, Optional<String> phone);
+
     boolean deleteContact(String id);
 }

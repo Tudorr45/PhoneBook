@@ -7,10 +7,7 @@ import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Path("/contacts")
 public class ContactResource {
@@ -18,19 +15,16 @@ public class ContactResource {
     @Inject
     ContactService contactService;
 
-    public static List<Contact> contacts = new ArrayList<>();
-
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getContacts() {
-        return Response.ok(contacts).build();
+        return Response.ok(contactService.getContacts()).build();
     }
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/size")
     public Long countContacts() {
-        //return contacts.size();
         return contactService.getContactsSize();
     }
 
@@ -38,9 +32,8 @@ public class ContactResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response createContact(Contact newContact) {
-        contacts.add(newContact);
         Optional<Contact> addedContact = contactService.createContact(newContact);
-        if(addedContact.isPresent()) {
+        if (addedContact.isPresent()) {
             return Response.ok(addedContact.get()).build();
         } else {
             return Response.noContent().build();
@@ -48,38 +41,21 @@ public class ContactResource {
     }
 
     @PUT
-    @Path("{id}")
+    @Path("{firstName}")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response updateContact(@PathParam("id") Long id,
-                                  @QueryParam("firstName") Optional<String> firstName,
+    public Response updateContact(@PathParam("firstName") String firstName,
+                                  @QueryParam("newFirstName") Optional<String> newFirstName,
                                   @QueryParam("lastName") Optional<String> lastName,
                                   @QueryParam("phone") Optional<String> phone) {
-        contacts = contacts.stream().map(contact -> {
-            if (contact.getId().equals(id)) {
-                firstName.ifPresent(contact::setFirstName);
-                lastName.ifPresent(contact::setLastName);
-                phone.ifPresent(contact::setPhone);
-            }
-            return contact;
-        }).collect(Collectors.toList());
-        return Response.ok(contacts).build();
+        return Response.ok(contactService.updateContact(firstName, newFirstName, lastName, phone)).build();
     }
 
     @DELETE
-    @Path("{id}")
+    @Path("{firstName}")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response deleteMovie(@PathParam("id") String id) {
-//        Optional<Contact> contactToDelete = contacts.stream().filter(contact ->
-//                contact.getId().equals(id)).findFirst();
-//        boolean removed = false;
-//        if (contactToDelete.isPresent()) {
-//            removed = contacts.remove(contactToDelete.get());
-//        }
-//        if (removed) {
-//            return Response.noContent().build();
-//        }
-        if(contactService.deleteContact(id)) {
+    public Response deleteMovie(@PathParam("firstName") String firstName) {
+        if (contactService.deleteContact(firstName)) {
             return Response.ok().build();
         } else {
             return Response.status(Response.Status.NOT_FOUND).build();

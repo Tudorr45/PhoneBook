@@ -37,7 +37,7 @@ public class Main {
         try {
             arangoDB.db(dbName).collection(collectionName).insertDocument(myObject);
             System.out.println("Document created");
-        } catch(ArangoDBException e) {
+        } catch (ArangoDBException e) {
             System.err.println("Failed to create document. " + e.getMessage());
         }
     }

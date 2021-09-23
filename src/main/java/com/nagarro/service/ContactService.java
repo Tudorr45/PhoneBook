@@ -1,4 +1,5 @@
 package com.nagarro.service;
+
 import com.nagarro.model.Contact;
 import com.nagarro.repo.IContactRepo;
 
@@ -8,7 +9,7 @@ import java.util.List;
 import java.util.Optional;
 
 @ApplicationScoped
-public class ContactService{
+public class ContactService {
 
     @Inject
     IContactRepo contactRepo;
@@ -29,8 +30,8 @@ public class ContactService{
         return contactRepo.createContact(contact);
     }
 
-    public Contact updateContact(Long id, String firstName, String lastName, String phone) {
-        return contactRepo.updateContact(id, firstName, lastName, phone);
+    public Contact updateContact(String firstName, Optional<String> newFirstName, Optional<String> lastName, Optional<String> phone) {
+        return contactRepo.updateContact(firstName, newFirstName, lastName, phone);
     }
 
     public boolean deleteContact(String id) {

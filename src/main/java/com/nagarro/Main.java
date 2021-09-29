@@ -1,45 +1,72 @@
-package com.nagarro;
-
-import com.arangodb.ArangoDB;
-import com.arangodb.ArangoDBException;
-import com.arangodb.entity.BaseDocument;
-import com.arangodb.mapping.ArangoJack;
-
-public class Main {
-    /*public static void main(String[] args) {
-
-        ArangoDB arangoDB = new ArangoDB.Builder()
-                .serializer(new ArangoJack())
-                .user("root")
-                .password("tudor")
-                .build();
-
-        String dbName = "phonebookDB";
-
-//        try {
-//            arangoDB.createDatabase(dbName);
-//            System.out.println("Database created: " + dbName);
-//        } catch(ArangoDBException e) {
-//            System.err.println("Failed to create database: " + dbName + "; " + e.getMessage());
+//package com.nagarro;
+//
+//import org.apache.ignite.Ignite;
+//import org.apache.ignite.IgniteCache;
+//import org.apache.ignite.Ignition;
+//import org.apache.ignite.configuration.IgniteConfiguration;
+//import org.apache.ignite.lang.IgniteRunnable;
+//import org.apache.ignite.resources.IgniteInstanceResource;
+//import org.apache.ignite.spi.discovery.tcp.TcpDiscoverySpi;
+//import org.apache.ignite.spi.discovery.tcp.ipfinder.multicast.TcpDiscoveryMulticastIpFinder;
+//
+//import java.util.Collections;
+//
+//public class Main {
+//    public static void main(String[] args) {
+//        // Preparing IgniteConfiguration using Java APIs
+//        IgniteConfiguration cfg = new IgniteConfiguration();
+//
+//        // The node will be started as a client node.
+//        cfg.setClientMode(true);
+//
+//        // Classes of custom Java logic will be transferred over the wire from this app.
+//        cfg.setPeerClassLoadingEnabled(true);
+//
+//        // Setting up an IP Finder to ensure the client can locate the servers.
+//        TcpDiscoveryMulticastIpFinder ipFinder = new TcpDiscoveryMulticastIpFinder();
+//        ipFinder.setAddresses(Collections.singletonList("127.0.0.1:47500..47509"));
+//        cfg.setDiscoverySpi(new TcpDiscoverySpi().setIpFinder(ipFinder));
+//
+//        // Starting the node
+//        Ignite ignite = Ignition.start(cfg);
+//
+//        // Create an IgniteCache and put some values in it.
+//        IgniteCache<Integer, String> cache = ignite.getOrCreateCache("contactCache");
+//
+//        cache.put(1, "Salut");
+//        cache.put(2, "Lume!");
+//
+//        System.out.println(">> Created the cache and add the values.");
+//
+//        // Executing custom Java compute task on server nodes.
+//        ignite.compute(ignite.cluster().forServers()).broadcast(new RemoteTask());
+//
+//        System.out.println(">> Compute task is executed, check for output on the server nodes.");
+//
+//        // Disconnect from the cluster.
+//        ignite.close();
+//    }
+//
+//    /**
+//     * A compute tasks that prints out a node ID and some details about its OS and JRE.
+//     * Plus, the code shows how to access data stored in a cache from the compute task.
+//     */
+//    private static class RemoteTask implements IgniteRunnable {
+//        @IgniteInstanceResource
+//        Ignite ignite;
+//
+//        @Override
+//        public void run() {
+//            System.out.println(">> Executing the compute task");
+//
+//            System.out.println(
+//                    "   Node ID: " + ignite.cluster().localNode().id() + "\n" +
+//                            "   OS: " + System.getProperty("os.name") +
+//                            "   JRE: " + System.getProperty("java.runtime.name"));
+//
+//            IgniteCache<Integer, String> cache = ignite.cache("contactCache");
+//
+//            System.out.println(">> " + cache.get(1) + " " + cache.get(2));
 //        }
-
-        String collectionName = "firstCollection";
-//        try {
-//            CollectionEntity myArangoCollection=arangoDB.db(dbName).createCollection(collectionName);
-//            System.out.println("Collection created: " + myArangoCollection.getName());
-//        } catch(ArangoDBException e) {
-//            System.err.println("Failed to create collection: " + collectionName + "; " + e.getMessage());
-//        }
-        BaseDocument myObject = new BaseDocument();
-        myObject.setKey("myKey");
-        myObject.addAttribute("a", "Foo");
-        myObject.addAttribute("b", 42);
-        try {
-            arangoDB.db(dbName).collection(collectionName).insertDocument(myObject);
-            System.out.println("Document created");
-        } catch (ArangoDBException e) {
-            System.err.println("Failed to create document. " + e.getMessage());
-        }
-    }
-     */
-}
+//    }
+//}

@@ -1,6 +1,13 @@
-package com.nagarro;
+package com.nagarro.util;
 
+import com.arangodb.ArangoCursor;
+import com.arangodb.ArangoDB;
+import com.arangodb.ArangoDBException;
+import com.arangodb.entity.BaseDocument;
+import com.arangodb.mapping.ArangoJack;
 import com.nagarro.model.Contact;
+import com.nagarro.repo.ContactRepo;
+import io.quarkus.runtime.StartupEvent;
 import org.apache.ignite.Ignite;
 import org.apache.ignite.IgniteCache;
 import org.apache.ignite.Ignition;
@@ -10,11 +17,14 @@ import org.apache.ignite.resources.IgniteInstanceResource;
 import org.apache.ignite.spi.discovery.tcp.TcpDiscoverySpi;
 import org.apache.ignite.spi.discovery.tcp.ipfinder.multicast.TcpDiscoveryMulticastIpFinder;
 
+import javax.enterprise.event.Observes;
 import java.util.Collections;
 
-public class HelloWorld {
-    public static void main(String[] args) {
-        // Preparing IgniteConfiguration using Java APIs
+public class CacheInitializer {
+
+    private static IgniteCache<String, Contact> cache;
+
+    public void onStart(@Observes StartupEvent ev) {
         IgniteConfiguration cfg = new IgniteConfiguration();
 
         // The node will be started as a client node.
@@ -32,20 +42,44 @@ public class HelloWorld {
         Ignite ignite = Ignition.start(cfg);
 
         // Create an IgniteCache and put some values in it.
-        IgniteCache<Integer, String> cache = ignite.getOrCreateCache("contactCache");
+        cache = ignite.getOrCreateCache("contactCache");
+        loadCache();
 
-        cache.put(1, "Hello");
-        cache.put(2, "World!");
+//        Contact contact = new Contact();
+//        contact.setFirstName("Tudor");
+//        contact.setLastName("Staicu");
+//        contact.setPhone("073573543");
+//        contact.setCreationDate(LocalDate.now());
+//        cache.put("Obj1", contact);
 
         System.out.println(">> Created the cache and add the values.");
 
         // Executing custom Java compute task on server nodes.
-        ignite.compute(ignite.cluster().forServers()).broadcast(new RemoteTask());
+        ignite.compute(ignite.cluster().forServers()).broadcast(new CacheInitializer.RemoteTask());
 
         System.out.println(">> Compute task is executed, check for output on the server nodes.");
 
         // Disconnect from the cluster.
         ignite.close();
+    }
+
+    private void loadCache() {
+        String DB_NAME = "phonebookDB";
+        String COLLECTION_NAME = "firstCollection";
+
+        ArangoDB arangoDB = new ArangoDB.Builder()
+                .serializer(new ArangoJack())
+                .user("root")
+                .password("tudor")
+                .build();
+
+        String getAllQuery = "FOR c IN " + COLLECTION_NAME + " RETURN c";
+        try {
+            ArangoCursor<BaseDocument> cursor = arangoDB.db(DB_NAME).query(getAllQuery, BaseDocument.class);
+            cursor.forEachRemaining(baseDocument -> cache.put(baseDocument.getAttribute("firstName").toString(), ContactRepo.convertDocumentToContact(baseDocument)));
+        } catch (ArangoDBException exception) {
+            System.err.println("Failed to execute query " + exception.getMessage());
+        }
     }
 
     /**
@@ -67,7 +101,7 @@ public class HelloWorld {
 
             IgniteCache<Integer, String> cache = ignite.cache("contactCache");
 
-            System.out.println(">> " + cache.get(1) + " " + cache.get(2));
+            System.out.println(">> " + cache.get(1));
         }
     }
 }

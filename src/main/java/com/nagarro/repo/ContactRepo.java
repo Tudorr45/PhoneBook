@@ -6,15 +6,16 @@ import com.arangodb.ArangoDBException;
 import com.arangodb.entity.BaseDocument;
 import com.arangodb.mapping.ArangoJack;
 import com.nagarro.model.Contact;
+import org.apache.ignite.Ignite;
 import org.apache.ignite.IgniteCache;
 import org.apache.ignite.Ignition;
-import org.apache.ignite.configuration.IgniteConfiguration;
-import org.apache.ignite.spi.discovery.tcp.ipfinder.multicast.TcpDiscoveryMulticastIpFinder;
+import org.apache.ignite.resources.IgniteInstanceResource;
 
+import javax.cache.Cache;
 import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -23,6 +24,9 @@ public class ContactRepo implements IContactRepo {
 
     private final static String DB_NAME = "phonebookDB";
     private final static String COLLECTION_NAME = "firstCollection";
+    @IgniteInstanceResource
+    private static Ignite ignite;
+    private final static IgniteCache<String, Contact> cache = ignite.cache("contactCache");
 
     ArangoDB arangoDB = new ArangoDB.Builder()
             .serializer(new ArangoJack())
@@ -30,18 +34,19 @@ public class ContactRepo implements IContactRepo {
             .password("tudor")
             .build();
 
-    private IgniteCache<String, Contact> cache = Ignition.start().getOrCreateCache("contactCache");
-
     @Override
     public List<Contact> getContacts() {
 
         List<Contact> contacts = new ArrayList<>();
-        String getAllQuery = "FOR c IN " + COLLECTION_NAME + " RETURN c";
+//        String getAllQuery = "FOR c IN " + COLLECTION_NAME + " RETURN c";
         try {
-            ArangoCursor<BaseDocument> cursor = arangoDB.db(DB_NAME).query(getAllQuery, BaseDocument.class);
-            cursor.forEachRemaining(baseDocument -> {
-                contacts.add(convertDocumentToContact(baseDocument));
-            });
+            //trying to retrieve all documents from the cache
+            for (Cache.Entry<String, Contact> stringPersonEntry : cache) {
+                Contact person = stringPersonEntry.getValue();
+                contacts.add(person);
+            }
+//            ArangoCursor<BaseDocument> cursor = arangoDB.db(DB_NAME).query(getAllQuery, BaseDocument.class);
+//            cursor.forEachRemaining(baseDocument -> contacts.add(convertDocumentToContact(baseDocument)));
         } catch (ArangoDBException exception) {
             System.err.println("Failed to execute query " + exception.getMessage());
         }
@@ -96,7 +101,7 @@ public class ContactRepo implements IContactRepo {
         }
     }
 
-    private Contact convertDocumentToContact(BaseDocument document) {
+    public static Contact convertDocumentToContact(BaseDocument document) {
         Contact contact = new Contact();
         contact.setFirstName(document.getAttribute("firstName").toString());
         contact.setLastName(document.getAttribute("lastName").toString());

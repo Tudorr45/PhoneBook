@@ -6,10 +6,15 @@ import com.arangodb.ArangoDBException;
 import com.arangodb.entity.BaseDocument;
 import com.arangodb.mapping.ArangoJack;
 import com.nagarro.model.Contact;
+import org.apache.ignite.IgniteCache;
+import org.apache.ignite.Ignition;
+import org.apache.ignite.configuration.IgniteConfiguration;
+import org.apache.ignite.spi.discovery.tcp.ipfinder.multicast.TcpDiscoveryMulticastIpFinder;
 
 import javax.enterprise.context.ApplicationScoped;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -25,8 +30,11 @@ public class ContactRepo implements IContactRepo {
             .password("tudor")
             .build();
 
+    private IgniteCache<String, Contact> cache = Ignition.start().getOrCreateCache("contactCache");
+
     @Override
     public List<Contact> getContacts() {
+
         List<Contact> contacts = new ArrayList<>();
         String getAllQuery = "FOR c IN " + COLLECTION_NAME + " RETURN c";
         try {

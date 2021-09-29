@@ -1,5 +1,6 @@
 package com.nagarro;
 
+import com.nagarro.model.Contact;
 import org.apache.ignite.Ignite;
 import org.apache.ignite.IgniteCache;
 import org.apache.ignite.Ignition;
@@ -31,7 +32,8 @@ public class HelloWorld {
         Ignite ignite = Ignition.start(cfg);
 
         // Create an IgniteCache and put some values in it.
-        IgniteCache<Integer, String> cache = ignite.getOrCreateCache("myCache");
+        IgniteCache<Integer, String> cache = ignite.getOrCreateCache("contactCache");
+
         cache.put(1, "Hello");
         cache.put(2, "World!");
 
@@ -63,7 +65,7 @@ public class HelloWorld {
                             "   OS: " + System.getProperty("os.name") +
                             "   JRE: " + System.getProperty("java.runtime.name"));
 
-            IgniteCache<Integer, String> cache = ignite.cache("myCache");
+            IgniteCache<Integer, String> cache = ignite.cache("contactCache");
 
             System.out.println(">> " + cache.get(1) + " " + cache.get(2));
         }

@@ -6,7 +6,7 @@ import com.arangodb.entity.BaseDocument;
 import com.arangodb.mapping.ArangoJack;
 
 public class Main {
-    public static void main(String[] args) {
+    /*public static void main(String[] args) {
 
         ArangoDB arangoDB = new ArangoDB.Builder()
                 .serializer(new ArangoJack())
@@ -41,4 +41,5 @@ public class Main {
             System.err.println("Failed to create document. " + e.getMessage());
         }
     }
+     */
 }

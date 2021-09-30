@@ -12,13 +12,14 @@ import org.apache.ignite.Ignite;
 import org.apache.ignite.IgniteCache;
 import org.apache.ignite.Ignition;
 import org.apache.ignite.configuration.IgniteConfiguration;
-import org.apache.ignite.lang.IgniteRunnable;
-import org.apache.ignite.resources.IgniteInstanceResource;
 import org.apache.ignite.spi.discovery.tcp.TcpDiscoverySpi;
 import org.apache.ignite.spi.discovery.tcp.ipfinder.multicast.TcpDiscoveryMulticastIpFinder;
 
+import javax.cache.Cache;
 import javax.enterprise.event.Observes;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 public class CacheInitializer {
 
@@ -45,22 +46,26 @@ public class CacheInitializer {
         cache = ignite.getOrCreateCache("contactCache");
         loadCache();
 
-//        Contact contact = new Contact();
-//        contact.setFirstName("Tudor");
-//        contact.setLastName("Staicu");
-//        contact.setPhone("073573543");
-//        contact.setCreationDate(LocalDate.now());
-//        cache.put("Obj1", contact);
+        System.out.println(">> Created the cache and added the values.");
 
-        System.out.println(">> Created the cache and add the values.");
+        System.out.println(">> Executing the compute task");
 
-        // Executing custom Java compute task on server nodes.
-        ignite.compute(ignite.cluster().forServers()).broadcast(new CacheInitializer.RemoteTask());
+        System.out.println(
+                "   Node ID: " + ignite.cluster().localNode().id() + "\n" +
+                        "   OS: " + System.getProperty("os.name") +
+                        "   JRE: " + System.getProperty("java.runtime.name"));
 
-        System.out.println(">> Compute task is executed, check for output on the server nodes.");
-
-        // Disconnect from the cluster.
-        ignite.close();
+        System.out.println(">> Size: " + cache.size()); // size e 3, dar da 4
+        //System.out.println(cache.get("Denissss")); // aici da ClassNotFoundException
+        if (cache.containsKey("Denissss")) {
+            System.out.println("Contine cheia Denissss");
+        }
+        if (!cache.containsKey("Bicicleta")) {
+            System.out.println("Nu contine cheia Bicicleta");
+        }
+        for (Cache.Entry<String, Contact> entry : cache) { // aici da ClassNotFoundException
+            System.out.println("\n\n\n" + entry + "\n\n\n");
+        }
     }
 
     private void loadCache() {
@@ -74,34 +79,16 @@ public class CacheInitializer {
                 .build();
 
         String getAllQuery = "FOR c IN " + COLLECTION_NAME + " RETURN c";
+        List<Contact> contacts = new ArrayList<>();
         try {
             ArangoCursor<BaseDocument> cursor = arangoDB.db(DB_NAME).query(getAllQuery, BaseDocument.class);
-            cursor.forEachRemaining(baseDocument -> cache.put(baseDocument.getAttribute("firstName").toString(), ContactRepo.convertDocumentToContact(baseDocument)));
+            cursor.forEachRemaining(baseDocument -> contacts.add(ContactRepo.convertDocumentToContact(baseDocument)));
+            contacts.forEach(contact -> {
+                System.out.println(contact); // it works fine
+                cache.put(contact.getFirstName(), contact);
+            });
         } catch (ArangoDBException exception) {
             System.err.println("Failed to execute query " + exception.getMessage());
-        }
-    }
-
-    /**
-     * A compute tasks that prints out a node ID and some details about its OS and JRE.
-     * Plus, the code shows how to access data stored in a cache from the compute task.
-     */
-    private static class RemoteTask implements IgniteRunnable {
-        @IgniteInstanceResource
-        Ignite ignite;
-
-        @Override
-        public void run() {
-            System.out.println(">> Executing the compute task");
-
-            System.out.println(
-                    "   Node ID: " + ignite.cluster().localNode().id() + "\n" +
-                            "   OS: " + System.getProperty("os.name") +
-                            "   JRE: " + System.getProperty("java.runtime.name"));
-
-            IgniteCache<Integer, String> cache = ignite.cache("contactCache");
-
-            System.out.println(">> " + cache.get(1));
         }
     }
 }

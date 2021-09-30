@@ -1,13 +1,25 @@
 package com.nagarro.model;
 
+import java.io.Serializable;
 import java.time.LocalDate;
 
-public class Contact {
+public class Contact implements Serializable {
 
     private String firstName;
     private String lastName;
     private String phone;
     private LocalDate creationDate;
+
+    public Contact() {
+
+    }
+
+    public Contact(String firstName, String lastName, String phone, LocalDate creationDate) {
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.phone = phone;
+        this.creationDate = creationDate;
+    }
 
     public String getFirstName() {
         return firstName;
@@ -39,5 +51,15 @@ public class Contact {
 
     public void setCreationDate(LocalDate contactCreationDate) {
         this.creationDate = contactCreationDate;
+    }
+
+    @Override
+    public String toString() {
+        return "Contact{" +
+                "firstName='" + firstName + '\'' +
+                ", lastName='" + lastName + '\'' +
+                ", phone='" + phone + '\'' +
+                ", creationDate=" + creationDate +
+                '}';
     }
 }

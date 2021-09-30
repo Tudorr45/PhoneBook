@@ -26,7 +26,7 @@ public class ContactRepo implements IContactRepo {
     private final static String COLLECTION_NAME = "firstCollection";
     @IgniteInstanceResource
     private static Ignite ignite;
-    private final static IgniteCache<String, Contact> cache = ignite.cache("contactCache");
+    //private final static IgniteCache<String, Contact> cache = ignite.cache("contactCache");
 
     ArangoDB arangoDB = new ArangoDB.Builder()
             .serializer(new ArangoJack())
@@ -34,23 +34,28 @@ public class ContactRepo implements IContactRepo {
             .password("tudor")
             .build();
 
+//    @Override
+//    public List<Contact> getContacts() {
+//
+//        List<Contact> contacts = new ArrayList<>();
+////        String getAllQuery = "FOR c IN " + COLLECTION_NAME + " RETURN c";
+//        try {
+//            //trying to retrieve all documents from the cache
+//            for (Cache.Entry<String, Contact> stringPersonEntry : cache) {
+//                Contact person = stringPersonEntry.getValue();
+//                contacts.add(person);
+//            }
+////            ArangoCursor<BaseDocument> cursor = arangoDB.db(DB_NAME).query(getAllQuery, BaseDocument.class);
+////            cursor.forEachRemaining(baseDocument -> contacts.add(convertDocumentToContact(baseDocument)));
+//        } catch (ArangoDBException exception) {
+//            System.err.println("Failed to execute query " + exception.getMessage());
+//        }
+//        return contacts;
+//    }
+
     @Override
     public List<Contact> getContacts() {
-
-        List<Contact> contacts = new ArrayList<>();
-//        String getAllQuery = "FOR c IN " + COLLECTION_NAME + " RETURN c";
-        try {
-            //trying to retrieve all documents from the cache
-            for (Cache.Entry<String, Contact> stringPersonEntry : cache) {
-                Contact person = stringPersonEntry.getValue();
-                contacts.add(person);
-            }
-//            ArangoCursor<BaseDocument> cursor = arangoDB.db(DB_NAME).query(getAllQuery, BaseDocument.class);
-//            cursor.forEachRemaining(baseDocument -> contacts.add(convertDocumentToContact(baseDocument)));
-        } catch (ArangoDBException exception) {
-            System.err.println("Failed to execute query " + exception.getMessage());
-        }
-        return contacts;
+        return null;
     }
 
     @Override

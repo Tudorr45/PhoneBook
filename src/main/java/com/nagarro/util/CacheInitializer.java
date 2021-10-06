@@ -11,12 +11,14 @@ import io.quarkus.runtime.StartupEvent;
 import org.apache.ignite.Ignite;
 import org.apache.ignite.IgniteCache;
 import org.apache.ignite.Ignition;
+import org.apache.ignite.binary.BinaryObject;
 import org.apache.ignite.configuration.IgniteConfiguration;
 import org.apache.ignite.spi.discovery.tcp.TcpDiscoverySpi;
 import org.apache.ignite.spi.discovery.tcp.ipfinder.multicast.TcpDiscoveryMulticastIpFinder;
 
 import javax.cache.Cache;
 import javax.enterprise.event.Observes;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -63,8 +65,16 @@ public class CacheInitializer {
         if (!cache.containsKey("Bicicleta")) {
             System.out.println("Nu contine cheia Bicicleta");
         }
-        for (Cache.Entry<String, Contact> entry : cache) { // aici da ClassNotFoundException
-            System.out.println("\n\n\n" + entry + "\n\n\n");
+//        for (Cache.Entry<String, Contact> entry : cache) { // aici da ClassNotFoundException
+//            System.out.println("\n\n\n" + entry + "\n\n\n");
+//        }
+        // Get an instance of binary-enabled cache.
+        IgniteCache<String, BinaryObject> binaryCache = ignite.cache("contactCache").withKeepBinary();
+        for (Cache.Entry<String, BinaryObject> entry : binaryCache) { // aßici da ClassNotFoundException
+            System.out.println("\n+++" + entry.getValue().field("lastName") + "++++\n");
+            LocalDate data = LocalDate.parse(entry.getValue().field("creationDate").toString());
+            System.out.println("Data este: " + data);
+            //TODO: Reconstruct Contact from Binary Object.
         }
     }
 
